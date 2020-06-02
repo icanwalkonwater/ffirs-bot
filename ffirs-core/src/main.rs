@@ -1,6 +1,6 @@
 use anyhow::Result;
 use dotenv_codegen::dotenv;
-use ffirs_bot::{event_handler::Handler, LOG_LEVEL};
+use ffirs_core::{event_handler::Handler, LOG_LEVEL};
 use log::warn;
 use serenity::Client;
 use simplelog::{Config, SimpleLogger, TermLogger, TerminalMode};
