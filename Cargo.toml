@@ -1,0 +1,31 @@
+[package]
+name = "ffirs-bot"
+version = "0.1.0"
+authors = ["Lucas Malandrino <lucas.malandrino@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+error-chain = "0.12.2"
+log = "0.4.8"
+simplelog = "0.8.0"
+
+[dependencies.serenity]
+version = "0.8.6"
+default-features = false
+features = [
+    "builder",
+    "cache",
+    "client",
+    "gateway",
+    "http",
+    "model",
+    "rustls_backend",
+]
+
+[dependencies.tokio]
+version = "0.2.21"
+features = [
+    "macros",
+    "rt-threaded",
+    "signal",
+]
