@@ -1,4 +1,5 @@
-use std::marker::PhantomData;
+use crate::CommandError::ParsingError;
+use crate::{CommandError, CommandResult};
 
 pub struct FragmentIterator {
     original: String,
@@ -41,7 +42,7 @@ impl FragmentIterator {
 }
 
 impl Iterator for FragmentIterator {
-    type Item = String;
+    type Item = CommandResult<String>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.trim_self();
@@ -52,8 +53,19 @@ impl Iterator for FragmentIterator {
 
             // Quotes
             let (fragment, end) = if first_char == '\'' || first_char == '"' {
-                let end = Self::find_end_of_quote(remaining)?;
-                (&remaining[1..end], end)
+                let end = Self::find_end_of_quote(remaining);
+
+                if let None = end {
+                    let start = self.current_position;
+                    self.current_position = self.original.len();
+                    return Some(Err(ParsingError {
+                        message: String::from("Can't find closing quote."),
+                        start,
+                        end: self.original.len() - 1
+                    }));
+                }
+
+                (&remaining[1..end.unwrap()], end.unwrap() + 1)
             } else {
                 let end = Self::find_end_of_word(remaining);
                 (&remaining[..end], end)
@@ -61,7 +73,7 @@ impl Iterator for FragmentIterator {
 
             self.current_position += end;
 
-            Some(fragment.to_owned())
+            Some(Ok(fragment.to_owned()))
         } else {
             None
         }
@@ -71,15 +83,45 @@ impl Iterator for FragmentIterator {
 #[cfg(test)]
 mod tests {
     use crate::fragment::FragmentIterator;
+    use crate::CommandError;
 
     #[test]
     pub fn test_fragment_iterator() {
         let mut iterator = FragmentIterator::new(String::from("  hey ho 'bl bl' "));
 
-        assert_eq!(iterator.next(), Some(String::from("hey")));
-        assert_eq!(iterator.next(), Some(String::from("ho")));
-        assert_eq!(iterator.next(), Some(String::from("bl bl")));
-        assert_eq!(iterator.next(), None);
+        assert_eq!(iterator.next().unwrap().unwrap(), String::from("hey"));
+        assert_eq!(iterator.next().unwrap().unwrap(), String::from("ho"));
+        assert_eq!(iterator.next().unwrap().unwrap(), String::from("bl bl"));
+        assert!(iterator.next().is_none());
+    }
+
+    #[test]
+    pub fn test_fragment_collect() {
+        let mut iterator = FragmentIterator::new(String::from("part one     and two 'three hey'"));
+        let frags = iterator.collect::<Vec<_>>();
+        let err = frags.iter().find(|res| res.is_err());
+        assert!(err.is_none());
+        let frags = frags.into_iter().map(|res| res.unwrap()).collect::<Vec<_>>();
+
+        assert_eq!(frags.len(), 5);
+        assert_eq!(&frags, &["part", "one", "and", "two", "three hey"]);
+    }
+
+    #[test]
+    pub fn test_fragment_collect_err() {
+        let iterator = FragmentIterator::new(String::from("part one     and two 'three hey"));
+        let frags = iterator.collect::<Vec<_>>();
+        let err = frags.iter().find(|res| res.is_err());
+
+        assert!(err.is_some());
+        let err = err.unwrap().as_ref().unwrap_err();
+        match err {
+            CommandError::ParsingError { start, end, .. } => {
+                assert_eq!(*start, 21);
+                assert_eq!(*end, 30);
+            },
+            _ => unreachable!()
+        }
     }
 
     #[test]
@@ -130,5 +172,17 @@ mod tests {
     pub fn test_find_ending_quote_multiple() {
         let multiple = "'hey' 'ho'";
         assert_eq!(FragmentIterator::find_end_of_quote(multiple), Some(4));
+    }
+
+    #[test]
+    pub fn test_find_ending_quote_spaced() {
+        let not_trimmed = "'hey'  ";
+        assert_eq!(FragmentIterator::find_end_of_quote(not_trimmed), Some(4));
+    }
+
+    #[test]
+    pub fn test_find_ending_quote_invalid2() {
+        let invalid = "'nope hey";
+        assert_eq!(FragmentIterator::find_end_of_quote(invalid), None);
     }
 }
