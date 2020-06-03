@@ -55,7 +55,6 @@ impl FragmentMapper for UserMapper {
 mod tests {
     use crate::mappers::{FragmentMapper, FromStrMapper, NoopMapper, UserMapper};
     use serenity::model::id::UserId;
-    use std::any::Any;
 
     #[test]
     pub fn test_mapper_noop() {

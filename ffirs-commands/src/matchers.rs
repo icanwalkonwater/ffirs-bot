@@ -1,9 +1,10 @@
 use regex::Regex;
 use serenity::model::id::UserId;
 use std::any::TypeId;
+use std::fmt::Debug;
 
 /// Trait used to recognize arguments and map them to a real object.
-pub trait FragMatcher {
+pub trait FragMatcher: Debug {
     /// Check if the given token can be mapped into the output type.
     /// If this returns true, the associated mapper must not fail.
     fn matches(&self, frag: &str) -> bool;
@@ -13,6 +14,7 @@ pub trait FragMatcher {
 }
 
 /// Matches a string literal perfectly.
+#[derive(Debug, Clone)]
 pub struct ExactMatcher {
     literal: String,
 }
@@ -34,6 +36,7 @@ impl FragMatcher for ExactMatcher {
 }
 
 /// Matches an unsigned number.
+#[derive(Debug, Clone, Copy)]
 pub struct UnsignedMatcher;
 
 impl FragMatcher for UnsignedMatcher {
@@ -47,6 +50,7 @@ impl FragMatcher for UnsignedMatcher {
 }
 
 /// Matches a signed number.
+#[derive(Debug)]
 pub struct SignedMatcher;
 
 impl FragMatcher for SignedMatcher {
@@ -66,6 +70,7 @@ impl FragMatcher for SignedMatcher {
 
 /// Matches a User mention (`<@123456789>`).
 /// Supports nicks.
+#[derive(Debug)]
 pub struct UserIdMatcher {
     regex: Regex,
 }
@@ -90,7 +95,9 @@ impl FragMatcher for UserIdMatcher {
 
 #[cfg(test)]
 mod tests {
-    use crate::matchers::{ExactMatcher, FragMatcher, UserIdMatcher};
+    use crate::matchers::{
+        ExactMatcher, FragMatcher, SignedMatcher, UnsignedMatcher, UserIdMatcher,
+    };
 
     #[test]
     pub fn test_matcher_exact() {
@@ -122,5 +129,27 @@ mod tests {
         assert!(!matcher.matches("<@123"));
         assert!(!matcher.matches("<123>"));
         assert!(!matcher.matches("123"));
+    }
+
+    #[test]
+    pub fn test_matcher_signed() {
+        let matcher = SignedMatcher;
+
+        assert!(matcher.matches("12"));
+        assert!(matcher.matches("-12"));
+        assert!(!matcher.matches("-12a"));
+        assert!(!matcher.matches("a"));
+        assert!(!matcher.matches("a12"));
+    }
+
+    #[test]
+    pub fn test_matcher_unsigned() {
+        let matcher = UnsignedMatcher;
+
+        assert!(matcher.matches("12"));
+        assert!(!matcher.matches("-12"));
+        assert!(!matcher.matches("-12a"));
+        assert!(!matcher.matches("a"));
+        assert!(!matcher.matches("a12"));
     }
 }

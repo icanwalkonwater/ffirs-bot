@@ -1,5 +1,5 @@
-use crate::error::CommandError::ParsingError;
-use crate::error::CommandResult;
+use crate::error::CmdError::ParsingError;
+use crate::error::CmdResult;
 
 pub struct FragmentIter {
     original: String,
@@ -42,7 +42,7 @@ impl FragmentIter {
 }
 
 impl Iterator for FragmentIter {
-    type Item = CommandResult<String>;
+    type Item = CmdResult<String>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.trim_self();
@@ -82,7 +82,7 @@ impl Iterator for FragmentIter {
 
 #[cfg(test)]
 mod tests {
-    use crate::error::CommandError;
+    use crate::error::CmdError;
     use crate::fragment_iter::FragmentIter;
 
     #[test]
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     pub fn test_fragment_collect() {
-        let mut iterator = FragmentIter::new(String::from("part one     and two 'three hey'"));
+        let iterator = FragmentIter::new(String::from("part one     and two 'three hey'"));
         let frags = iterator.collect::<Vec<_>>();
         let err = frags.iter().find(|res| res.is_err());
         assert!(err.is_none());
@@ -119,7 +119,7 @@ mod tests {
         assert!(err.is_some());
         let err = err.unwrap().as_ref().unwrap_err();
         match err {
-            CommandError::ParsingError { start, end, .. } => {
+            CmdError::ParsingError { start, end, .. } => {
                 assert_eq!(*start, 21);
                 assert_eq!(*end, 30);
             }

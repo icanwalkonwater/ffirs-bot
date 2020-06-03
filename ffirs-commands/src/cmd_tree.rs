@@ -1,13 +1,15 @@
 use crate::matchers::FragMatcher;
+use std::fmt::Debug;
 
-pub type CmdTree<'a> = CmdNode<'a>;
+pub type CmdTree = CmdNode;
 
-pub struct CmdNode<'a> {
-    pub pattern: &'a dyn FragMatcher,
-    pub children: Vec<CmdNode<'a>>,
+#[derive(Debug)]
+pub struct CmdNode {
+    pub pattern: Box<dyn FragMatcher>,
+    pub children: Vec<CmdNode>,
 }
 
-impl CmdNode<'_> {
+impl CmdNode {
     pub fn filter(&self, frag: &str) -> Vec<&CmdNode> {
         self.children
             .iter()

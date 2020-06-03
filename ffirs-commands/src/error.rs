@@ -1,9 +1,9 @@
 use thiserror::Error;
 
-pub type CommandResult<T> = std::result::Result<T, CommandError>;
+pub type CmdResult<T> = std::result::Result<T, CmdError>;
 
 #[derive(Error, Debug)]
-pub enum CommandError {
+pub enum CmdError {
     #[error("Command parsing error at [{start}..{end}]: {message}")]
     ParsingError {
         message: String,
@@ -12,6 +12,8 @@ pub enum CommandError {
     },
     #[error("Command not found: {name}")]
     NotFound { name: String },
+    #[error("No matching path found")]
+    NoPathFound,
     #[error("Missing permission, required level: {level}")]
-    MissingPermission { level: u32 },
+    MissingPerm { level: u32 },
 }
