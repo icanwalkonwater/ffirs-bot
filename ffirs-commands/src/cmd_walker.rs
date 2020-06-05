@@ -60,8 +60,8 @@ impl CmdManager {
 mod tests {
     use crate::cmd_manager::CmdManager;
     use crate::cmd_tree::CmdNode;
-    use crate::matchers::{ExactMatcher, SignedMatcher, UnsignedMatcher};
-    use std::any::TypeId;
+    use crate::matchers::{ExactMatcher, FragMatcher, SignedMatcher, UnsignedMatcher};
+    use std::any::{Any, TypeId};
 
     fn make_tree() -> CmdNode {
         CmdNode {
@@ -105,6 +105,17 @@ mod tests {
         assert_eq!(path.len(), 2);
         assert_eq!(path[0].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
         assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+
+        unsafe {
+            assert_eq!(
+                *(path[0].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("sub"))
+            );
+            assert_eq!(
+                *(path[1].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("root"))
+            );
+        }
     }
 
     #[test]
@@ -135,6 +146,25 @@ mod tests {
         assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<i64>()); // Signed matcher
         assert_eq!(path[2].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
         assert_eq!(path[3].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+
+        assert_eq!(
+            path[0].pattern.as_ref().type_id(),
+            TypeId::of::<UnsignedMatcher>()
+        );
+        assert_eq!(
+            path[1].pattern.as_ref().type_id(),
+            TypeId::of::<SignedMatcher>()
+        );
+        unsafe {
+            assert_eq!(
+                *(path[2].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("add"))
+            );
+            assert_eq!(
+                *(path[3].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("root"))
+            );
+        }
     }
 
     #[test]
@@ -154,6 +184,25 @@ mod tests {
         assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
         assert_eq!(path[2].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
         assert_eq!(path[3].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+
+        assert_eq!(
+            path[0].pattern.as_ref().type_id(),
+            TypeId::of::<SignedMatcher>()
+        );
+        unsafe {
+            assert_eq!(
+                *(path[1].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("infty"))
+            );
+            assert_eq!(
+                *(path[2].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("add"))
+            );
+            assert_eq!(
+                *(path[3].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
+                ExactMatcher::new(String::from("root"))
+            );
+        }
     }
 
     #[test]

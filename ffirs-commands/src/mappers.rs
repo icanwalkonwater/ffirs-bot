@@ -51,6 +51,15 @@ impl FragmentMapper for UserMapper {
     }
 }
 
+/// Return the fragment as is.
+pub struct ExactMapper;
+
+impl FragmentMapper for ExactMapper {
+    fn map(&self, fragment: &str) -> MapperOutput {
+        Box::new(fragment.to_owned())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::mappers::{FragmentMapper, FromStrMapper, NoopMapper, UserMapper};

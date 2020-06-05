@@ -4,6 +4,7 @@ use serenity::model::prelude::Message;
 
 use error::CmdResult;
 
+// pub mod cmd_builder;
 pub mod cmd_manager;
 pub mod cmd_tree;
 pub mod cmd_walker;
@@ -16,10 +17,10 @@ pub mod type_map;
 // #[command]
 // #[aliases = "ping,p"]
 // #[syntax = "<first: User> <chan: Channel> <second: User>"]
-fn ping(message: Message, args: Args) -> CmdResult<()> {
+fn ping(_message: Message, _args: Args) -> CmdResult<()> {
     Ok(())
 }
 
 pub fn parse(message: Message) {
-    let content = message.content;
+    let _content = message.content;
 }

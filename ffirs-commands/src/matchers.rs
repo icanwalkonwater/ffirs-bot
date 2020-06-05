@@ -1,10 +1,10 @@
 use regex::Regex;
 use serenity::model::id::UserId;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::fmt::Debug;
 
 /// Trait used to recognize arguments and map them to a real object.
-pub trait FragMatcher: Debug {
+pub trait FragMatcher: Debug + Any {
     /// Check if the given token can be mapped into the output type.
     /// If this returns true, the associated mapper must not fail.
     fn matches(&self, frag: &str) -> bool;
@@ -25,6 +25,12 @@ impl ExactMatcher {
     }
 }
 
+impl PartialEq for ExactMatcher {
+    fn eq(&self, other: &Self) -> bool {
+        self.literal == other.literal
+    }
+}
+
 impl FragMatcher for ExactMatcher {
     fn matches(&self, frag: &str) -> bool {
         self.literal == frag
@@ -36,7 +42,7 @@ impl FragMatcher for ExactMatcher {
 }
 
 /// Matches an unsigned number.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnsignedMatcher;
 
 impl FragMatcher for UnsignedMatcher {
@@ -50,7 +56,7 @@ impl FragMatcher for UnsignedMatcher {
 }
 
 /// Matches a signed number.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SignedMatcher;
 
 impl FragMatcher for SignedMatcher {
@@ -70,7 +76,7 @@ impl FragMatcher for SignedMatcher {
 
 /// Matches a User mention (`<@123456789>`).
 /// Supports nicks.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UserIdMatcher {
     regex: Regex,
 }
@@ -80,6 +86,12 @@ impl Default for UserIdMatcher {
         Self {
             regex: Regex::new("<@!?[0-9]+>").expect("Failed to compile user regex"),
         }
+    }
+}
+
+impl PartialEq for UserIdMatcher {
+    fn eq(&self, _: &Self) -> bool {
+        true
     }
 }
 
