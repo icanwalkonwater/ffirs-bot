@@ -106,16 +106,22 @@ mod tests {
         assert_eq!(path[0].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
         assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
 
-        unsafe {
-            assert_eq!(
-                *(path[0].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("sub"))
-            );
-            assert_eq!(
-                *(path[1].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("root"))
-            );
-        }
+        assert_eq!(
+            path[0]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("sub"))
+        );
+        assert_eq!(
+            path[1]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("root"))
+        );
     }
 
     #[test]
@@ -148,23 +154,37 @@ mod tests {
         assert_eq!(path[3].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
 
         assert_eq!(
-            path[0].pattern.as_ref().type_id(),
-            TypeId::of::<UnsignedMatcher>()
+            path[0]
+                .pattern
+                .as_any()
+                .downcast_ref::<UnsignedMatcher>()
+                .unwrap(),
+            &UnsignedMatcher
         );
         assert_eq!(
-            path[1].pattern.as_ref().type_id(),
-            TypeId::of::<SignedMatcher>()
+            path[1]
+                .pattern
+                .as_any()
+                .downcast_ref::<SignedMatcher>()
+                .unwrap(),
+            &SignedMatcher
         );
-        unsafe {
-            assert_eq!(
-                *(path[2].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("add"))
-            );
-            assert_eq!(
-                *(path[3].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("root"))
-            );
-        }
+        assert_eq!(
+            path[2]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("add"))
+        );
+        assert_eq!(
+            path[3]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("root"))
+        );
     }
 
     #[test]
@@ -186,23 +206,37 @@ mod tests {
         assert_eq!(path[3].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
 
         assert_eq!(
-            path[0].pattern.as_ref().type_id(),
-            TypeId::of::<SignedMatcher>()
+            path[0]
+                .pattern
+                .as_any()
+                .downcast_ref::<SignedMatcher>()
+                .unwrap(),
+            &SignedMatcher
         );
-        unsafe {
-            assert_eq!(
-                *(path[1].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("infty"))
-            );
-            assert_eq!(
-                *(path[2].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("add"))
-            );
-            assert_eq!(
-                *(path[3].pattern.as_ref() as *const dyn FragMatcher as *const ExactMatcher),
-                ExactMatcher::new(String::from("root"))
-            );
-        }
+        assert_eq!(
+            path[1]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("infty"))
+        );
+        assert_eq!(
+            path[2]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("add"))
+        );
+        assert_eq!(
+            path[3]
+                .pattern
+                .as_any()
+                .downcast_ref::<ExactMatcher>()
+                .unwrap(),
+            &ExactMatcher::new(String::from("root"))
+        );
     }
 
     #[test]

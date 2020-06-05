@@ -11,6 +11,9 @@ pub trait FragMatcher: Debug + Any {
 
     /// `TypeId` contains in the fragment, the mapper associated with this type will be used.
     fn fragment_type_id(&self) -> TypeId;
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any;
 }
 
 /// Matches a string literal perfectly.
@@ -39,6 +42,11 @@ impl FragMatcher for ExactMatcher {
     fn fragment_type_id(&self) -> TypeId {
         TypeId::of::<()>()
     }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 /// Matches an unsigned number.
@@ -52,6 +60,11 @@ impl FragMatcher for UnsignedMatcher {
 
     fn fragment_type_id(&self) -> TypeId {
         TypeId::of::<u64>()
+    }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -71,6 +84,11 @@ impl FragMatcher for SignedMatcher {
 
     fn fragment_type_id(&self) -> TypeId {
         TypeId::of::<i64>()
+    }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -102,6 +120,11 @@ impl FragMatcher for UserIdMatcher {
 
     fn fragment_type_id(&self) -> TypeId {
         TypeId::of::<UserId>()
+    }
+
+    #[cfg(test)]
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
