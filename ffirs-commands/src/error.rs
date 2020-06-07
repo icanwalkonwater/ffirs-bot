@@ -16,4 +16,9 @@ pub enum CmdError {
     NoPathFound,
     #[error("Missing permission, required level: {level}")]
     MissingPerm { level: u32 },
+
+    #[error("Can't build a command without fragments !")]
+    EmptyCmdBuilder,
+    #[error("Unknown matcher type ecoutered: {ty}")]
+    CreatorUnknownMatcher { ty: String },
 }

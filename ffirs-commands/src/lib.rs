@@ -4,7 +4,9 @@ use serenity::model::prelude::Message;
 
 use error::CmdResult;
 
-// pub mod cmd_builder;
+pub mod cmd_creator;
+pub mod cmd_tree_builder_ext;
+pub mod cmd_tree_builder;
 pub mod cmd_manager;
 pub mod cmd_tree;
 pub mod cmd_walker;

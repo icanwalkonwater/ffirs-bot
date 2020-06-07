@@ -25,7 +25,7 @@ impl CmdManager {
 
     pub(self) fn walk_command_tree<'a>(node: &'a CmdNode, frags: &[String]) -> Option<CmdPath<'a>> {
         if let Some(frag) = frags.first() {
-            if node.pattern.matches(frag) {
+            if node.matcher.matches(frag) {
                 if node.children.is_empty() {
                     // We're at the end of the chain
                     Some(vec![node])
@@ -60,37 +60,33 @@ impl CmdManager {
 mod tests {
     use crate::cmd_manager::CmdManager;
     use crate::cmd_tree::CmdNode;
-    use crate::matchers::{ExactMatcher, FragMatcher, SignedMatcher, UnsignedMatcher};
-    use std::any::{Any, TypeId};
+    use crate::matchers::{ExactMatcher, SignedMatcher, UnsignedMatcher};
+    use std::any::TypeId;
 
     fn make_tree() -> CmdNode {
         CmdNode {
-            pattern: Box::new(ExactMatcher::new(String::from("root"))),
+            matcher: Box::new(ExactMatcher::new(String::from("root"))),
+            name: None,
             children: vec![
                 CmdNode {
-                    pattern: Box::new(ExactMatcher::new(String::from("add"))),
+                    matcher: Box::new(ExactMatcher::new(String::from("add"))),
+                    name: None,
                     children: vec![CmdNode {
-                        pattern: Box::new(SignedMatcher),
-                        children: vec![CmdNode {
-                            pattern: Box::new(UnsignedMatcher),
-                            children: vec![],
-                        }],
+                        matcher: Box::new(SignedMatcher),
+                        name: None,
+                        children: vec![CmdNode::new(UnsignedMatcher)],
                     }],
                 },
                 CmdNode {
-                    pattern: Box::new(ExactMatcher::new(String::from("add"))),
+                    matcher: Box::new(ExactMatcher::new(String::from("add"))),
+                    name: None,
                     children: vec![CmdNode {
-                        pattern: Box::new(ExactMatcher::new(String::from("infty"))),
-                        children: vec![CmdNode {
-                            pattern: Box::new(SignedMatcher),
-                            children: vec![],
-                        }],
+                        matcher: Box::new(ExactMatcher::new(String::from("infty"))),
+                        name: None,
+                        children: vec![CmdNode::new(SignedMatcher)],
                     }],
                 },
-                CmdNode {
-                    pattern: Box::new(ExactMatcher::new(String::from("sub"))),
-                    children: vec![],
-                },
+                CmdNode::new(ExactMatcher::new(String::from("sub"))),
             ],
         }
     }
@@ -103,12 +99,12 @@ mod tests {
         let path = CmdManager::walk_command_tree(&cmd_root, &frags).unwrap();
 
         assert_eq!(path.len(), 2);
-        assert_eq!(path[0].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
-        assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[0].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[1].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
 
         assert_eq!(
             path[0]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),
@@ -116,7 +112,7 @@ mod tests {
         );
         assert_eq!(
             path[1]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),
@@ -148,14 +144,14 @@ mod tests {
         let path = CmdManager::walk_command_tree(&cmd_root, &frags).unwrap();
 
         assert_eq!(path.len(), 4);
-        assert_eq!(path[0].pattern.fragment_type_id(), TypeId::of::<u64>()); // Unsigned matcher
-        assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<i64>()); // Signed matcher
-        assert_eq!(path[2].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
-        assert_eq!(path[3].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[0].matcher.fragment_type_id(), TypeId::of::<u64>()); // Unsigned matcher
+        assert_eq!(path[1].matcher.fragment_type_id(), TypeId::of::<i64>()); // Signed matcher
+        assert_eq!(path[2].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[3].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
 
         assert_eq!(
             path[0]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<UnsignedMatcher>()
                 .unwrap(),
@@ -163,7 +159,7 @@ mod tests {
         );
         assert_eq!(
             path[1]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<SignedMatcher>()
                 .unwrap(),
@@ -171,7 +167,7 @@ mod tests {
         );
         assert_eq!(
             path[2]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),
@@ -179,7 +175,7 @@ mod tests {
         );
         assert_eq!(
             path[3]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),
@@ -200,14 +196,14 @@ mod tests {
         let path = CmdManager::walk_command_tree(&cmd_root, &frags).unwrap();
 
         assert_eq!(path.len(), 4);
-        assert_eq!(path[0].pattern.fragment_type_id(), TypeId::of::<i64>()); // Signed matcher
-        assert_eq!(path[1].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
-        assert_eq!(path[2].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
-        assert_eq!(path[3].pattern.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[0].matcher.fragment_type_id(), TypeId::of::<i64>()); // Signed matcher
+        assert_eq!(path[1].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[2].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
+        assert_eq!(path[3].matcher.fragment_type_id(), TypeId::of::<()>()); // Exact matcher
 
         assert_eq!(
             path[0]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<SignedMatcher>()
                 .unwrap(),
@@ -215,7 +211,7 @@ mod tests {
         );
         assert_eq!(
             path[1]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),
@@ -223,7 +219,7 @@ mod tests {
         );
         assert_eq!(
             path[2]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),
@@ -231,7 +227,7 @@ mod tests {
         );
         assert_eq!(
             path[3]
-                .pattern
+                .matcher
                 .as_any()
                 .downcast_ref::<ExactMatcher>()
                 .unwrap(),

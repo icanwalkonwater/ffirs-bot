@@ -95,11 +95,11 @@ impl FragMatcher for SignedMatcher {
 /// Matches a User mention (`<@123456789>`).
 /// Supports nicks.
 #[derive(Debug, Clone)]
-pub struct UserIdMatcher {
+pub struct UserMentionMatcher {
     regex: Regex,
 }
 
-impl Default for UserIdMatcher {
+impl Default for UserMentionMatcher {
     fn default() -> Self {
         Self {
             regex: Regex::new("<@!?[0-9]+>").expect("Failed to compile user regex"),
@@ -107,13 +107,13 @@ impl Default for UserIdMatcher {
     }
 }
 
-impl PartialEq for UserIdMatcher {
+impl PartialEq for UserMentionMatcher {
     fn eq(&self, _: &Self) -> bool {
         true
     }
 }
 
-impl FragMatcher for UserIdMatcher {
+impl FragMatcher for UserMentionMatcher {
     fn matches(&self, frag: &str) -> bool {
         self.regex.is_match(frag)
     }
@@ -131,7 +131,7 @@ impl FragMatcher for UserIdMatcher {
 #[cfg(test)]
 mod tests {
     use crate::matchers::{
-        ExactMatcher, FragMatcher, SignedMatcher, UnsignedMatcher, UserIdMatcher,
+        ExactMatcher, FragMatcher, SignedMatcher, UnsignedMatcher, UserMentionMatcher,
     };
 
     #[test]
@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     pub fn test_matcher_user_id() {
-        let matcher = UserIdMatcher::default();
+        let matcher = UserMentionMatcher::default();
 
         assert!(matcher.matches("<@123>"));
         assert!(matcher.matches("<@!123>"));
